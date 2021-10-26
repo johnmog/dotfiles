@@ -131,20 +131,61 @@ function cl-ssh() {
     done
 }
 
+# Git
+function git-copy-branch-name {
+    branch=$(git rev-parse --abbrev-ref HEAD)
+    echo $branch
+    echo $branch | tr -d '\n' | tr -d ' ' | pbcopy
+}
+
+function git-clear-branch {
+    git branch -D $1
+    git push origin :$1
+}
+
+function git-pull {
+    branch=$(git rev-parse --abbrev-ref HEAD)
+    git pull origin $branch
+}
+
+function git-create-branch {
+    git checkout -b $1
+    git push -u origin $1
+}
+
 # codespace
 function codespace() {
   CODESPACE=$(gh cs create -r github/$@ -b master)
   gh cs code --insiders -c $CODESPACE
 }
 
+# dotfiles
 alias dotfiles='/usr/bin/git --git-dir=$HOME/Repos/dotfiles/.git --work-tree=$HOME'
+
+# general
 alias o='open '
 alias g='grep -r --color=auto'
 alias grep='grep --color=auto'
+alias ll='ls -al'
 alias ld='ls -d */'
 alias f='find . -name'
-alias c='clear'
+alias cls='clear'
+
+# creds
+alias pkey="more ~/.ssh/id_rsa.pub | pbcopy | echo '=> Public key copied to pasteboard.'"
+
+# repos
 alias adn='cd ~/adn/src'
+
+# git
+alias gbn='git-copy-branch-name'
+alias gcb='git-clear-branch'
+alias gpull='git-pull'
+alias gbranch='git-create-branch'
+
+# containers
 alias k='kubectl'
+alias d='docker'
+alias dc='docker-compose'
 
 source /Users/johnmog/Repos/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
