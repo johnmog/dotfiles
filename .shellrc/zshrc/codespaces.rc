@@ -1,0 +1,5 @@
+# codespace
+function codespace() {
+  CODESPACE=$(gh cs create -r github/$@ -b master)
+  gh cs code --insiders -c $CODESPACE
+}

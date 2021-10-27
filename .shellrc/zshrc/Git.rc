@@ -1,0 +1,20 @@
+function git-copy-branch-name {
+    branch=$(git rev-parse --abbrev-ref HEAD)
+    echo $branch
+    echo $branch | tr -d '\n' | tr -d ' ' | pbcopy
+}
+
+function git-clear-branch {
+    git branch -D $1
+    git push origin :$1
+}
+
+function git-pull {
+    branch=$(git rev-parse --abbrev-ref HEAD)
+    git pull origin $branch
+}
+
+function git-create-branch {
+    git checkout -b $1
+    git push -u origin $1
+}

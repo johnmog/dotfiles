@@ -6,10 +6,10 @@ if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]
 fi
 
 # If you come from bash you might have to change your $PATH.
-# export PATH=$HOME/bin:/usr/local/bin:$PATH
+#export PATH=$HOME/bin:/usr/local/bin:$PATH
 
 # Path to your oh-my-zsh installation.
-export ZSH="/Users/johnmog/.oh-my-zsh"
+export ZSH="$HOME/.oh-my-zsh"
 
 # Set name of the theme to load --- if set to "random", it will
 # load a random theme each time oh-my-zsh is loaded, in which case,
@@ -107,85 +107,11 @@ source $ZSH/oh-my-zsh.sh
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 
-# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
-[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
-
-[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
-
-export FZF_DEFAULT_OPTS='--height 40%'
-
-# creates a new terminal window
-function new() {
-    if [[ $# -eq 0 ]]; then
-        open -a "iterm" "$PWD"
-    else
-        open -a "iterm" "$@"
-    fi
-}
-
-# ssh to all in cluster
-function cl-ssh() {
-    for var in "$@"
-    do
-        open -a "iterm" "ssh://admin@$var:122"
-    done
-}
-
-# Git
-function git-copy-branch-name {
-    branch=$(git rev-parse --abbrev-ref HEAD)
-    echo $branch
-    echo $branch | tr -d '\n' | tr -d ' ' | pbcopy
-}
-
-function git-clear-branch {
-    git branch -D $1
-    git push origin :$1
-}
-
-function git-pull {
-    branch=$(git rev-parse --abbrev-ref HEAD)
-    git pull origin $branch
-}
-
-function git-create-branch {
-    git checkout -b $1
-    git push -u origin $1
-}
-
-# codespace
-function codespace() {
-  CODESPACE=$(gh cs create -r github/$@ -b master)
-  gh cs code --insiders -c $CODESPACE
-}
-
-# dotfiles
-alias dotfiles='/usr/bin/git --git-dir=$HOME/Repos/dotfiles/.git --work-tree=$HOME'
-
-# general
-alias o='open '
-alias g='grep -r --color=auto'
-alias grep='grep --color=auto'
-alias ll='ls -al'
-alias ld='ls -d */'
-alias f='find . -name'
-alias cls='clear'
-
-# creds
-alias pkey="more ~/.ssh/id_rsa.pub | pbcopy | echo '=> Public key copied to pasteboard.'"
-
-# repos
-alias adn='cd ~/adn/src'
-
-# git
-alias gbn='git-copy-branch-name'
-alias gcb='git-clear-branch'
-alias gpull='git-pull'
-alias gbranch='git-create-branch'
-
-# containers
-alias k='kubectl'
-alias d='docker'
-alias dc='docker-compose'
+# Load all files from .shell/zshrc.d directory
+if [ -d $HOME/.shellrc/zshrc ]; then
+  for file in $HOME/.shellrc/zshrc/*.rc; do
+    source $file
+  done
+fi
 
 source /Users/johnmog/Repos/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh

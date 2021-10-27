@@ -1,0 +1,16 @@
+# creates a new terminal window
+function new() {
+    if [[ $# -eq 0 ]]; then
+        open -a "iterm" "$PWD"
+    else
+        open -a "iterm" "$@"
+    fi
+}
+
+# ssh to all in cluster
+function ssh-all() {
+    for var in "$@"
+    do
+        open -a "iterm" "ssh://admin@$var:122"
+    done
+}
