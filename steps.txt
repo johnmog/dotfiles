@@ -5,7 +5,7 @@ dotfiles config --local status.showUntrackedFiles no
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
 brew install iterm2
-sh "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
 git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ~/powerlevel10k
 chsh -s /bin/zsh
 brew install fzf
@@ -27,3 +27,5 @@ git clone https://github.com/joshdick/onedark.vim.git ~/onedark
   cp autoload/onedark.vim ~/.vim/autoload/
 
 export EDITOR='code'
+
+brew install --cask powershell
