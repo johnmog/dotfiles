@@ -6,6 +6,7 @@ cd ~/Repos/dotfiles
 for file in {.[\!.]*,*}; do
     ln -sf ~/Repos/dotfiles/"$file" ~/"$file"
 done
+ln -sf ~/Repos/dotfiles/.shellrc ~/
 cd ~/
 
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
