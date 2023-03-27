@@ -22,3 +22,14 @@ syntax on
 set number
 highlight Normal ctermbg=None
 highlight LineNr ctermfg=DarkGrey
+
+set tabstop=4
+set expandtab
+set autoindent
+set smartindent
+set hlsearch
+set incsearch
+set ignorecase
+set smartcase
+set mouse=a
+set clipboard=unnamedplus
