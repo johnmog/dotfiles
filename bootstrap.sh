@@ -9,11 +9,11 @@
 #ln -sf ~/Repos/dotfiles/.shellrc ~/
 #cd ~/
 
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
 echo >> /home/vscode/.bashrc
 echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >> /home/vscode/.bashrc
 eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
 brew install iterm2
 sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
