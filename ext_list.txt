@@ -1,3 +1,4 @@
+# code --list-extensions
 # tail -n +3 ext_list.txt | xargs -n 1 code --install-extension
 
 dbaeumer.vscode-eslint
@@ -46,3 +47,4 @@ quicktype.quicktype
 redhat.vscode-yaml
 streetsidesoftware.code-spell-checker
 vsls-contrib.codetour
+yzhang.markdown-all-in-one
