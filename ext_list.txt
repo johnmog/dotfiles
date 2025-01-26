@@ -1,6 +1,7 @@
 # code --list-extensions
 # tail -n +3 ext_list.txt | xargs -n 1 code --install-extension
 
+connor4312.esbuild-problem-matchers
 dbaeumer.vscode-eslint
 dracula-theme.theme-dracula
 dsznajder.es7-react-js-snippets
