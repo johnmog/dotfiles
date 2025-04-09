@@ -1,54 +1,55 @@
-#!/bin/bash
+#alias dotfiles='/usr/bin/git --git-dir=$HOME/Repos/dotfiles/.git --work-tree=$HOME'
+#git clone https://github.com/johnmog/dotfiles $HOME/Repos/dotfiles
+#dotfiles config --local status.showUntrackedFiles no
 
-# Exit immediately if a command exits with a non-zero status
-set -e
+#cd ~/Repos/dotfiles
+#for file in {.[\!.]*,*}; do
+#    ln -sf ~/Repos/dotfiles/"$file" ~/"$file"
+#done
+#ln -sf ~/Repos/dotfiles/.shellrc ~/
+#cd ~/
 
-# Define variables for paths
-HOME_DIR="$HOME"
-DOTFILES_DIR="$HOME_DIR/Repos/dotfiles"
-BASHRC_PATH="$HOME_DIR/.bashrc"
-LINUXBREW_PATH="$HOME_DIR/.linuxbrew/bin/brew"
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
-# Clone the dotfiles repository if it doesn't exist
-if [ ! -d "$DOTFILES_DIR" ]; then
-  echo "Cloning dotfiles repository..."
-  git clone https://github.com/johnmog/dotfiles "$DOTFILES_DIR"
-else
-  echo "Dotfiles repository already exists. Skipping clone."
-fi
+echo >> /home/vscode/.bashrc
+echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >> /home/vscode/.bashrc
+eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
 
-# Check if Linuxbrew is installed
-if [ ! -f "$LINUXBREW_PATH" ]; then
-  echo "Installing Linuxbrew..."
-  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-else
-  echo "Linuxbrew is already installed. Skipping installation."
-fi
+brew install iterm2
+sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+git clone https://github.com/romkatv/powerlevel10k.git $ZSH_CUSTOM/themes/powerlevel10k
+echo "Set solarized dark theme in iTerm with CMD+i"
+read
+echo "Set key bindings in iTerm Cmd+<- = b, other is f, Cmd+Del = 0x15"
+read
+git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ~/Repos/zsh-syntax-highlighting
+git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions
+chsh -s /bin/zsh
+brew install fzf
+$(brew --prefix)/opt/fzf/install
+brew install autojump
 
-# Set up fzf if not already installed
-if ! command -v fzf &> /dev/null; then
-  echo "Installing fzf..."
-  brew install fzf
-else
-  echo "fzf is already installed. Skipping installation."
-fi
+curl -fLo ~/.vim/autoload/plug.vim --create-dirs \
+    https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
 
-# Set up autojump if not already installed
-if ! command -v autojump &> /dev/null; then
-  echo "Installing autojump..."
-  brew install autojump
-else
-  echo "autojump is already installed. Skipping installation."
-fi
+git clone https://github.com/powerline/fonts.git --depth=1
+  cd fonts
+  ./install.sh
+  cd ..
+  rm -rf fonts
 
-# Export default editor
-export EDITOR="code"
+git clone https://github.com/joshdick/onedark.vim.git ~/onedark
+  cd ~/onedark
+  mkdir ~/.vim/colors
+  cp colors/onedark.vim ~/.vim/colors/
+  cp autoload/onedark.vim ~/.vim/autoload/
 
-# Add comments to explain each section
-# This script sets up the development environment by cloning repositories,
-# installing necessary tools, and configuring the shell environment.
+export EDITOR='code'
 
-# Additional setup commands can be added below
-# ...existing code...
+brew install --cask powershell
+echo ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE=\'fg=60\' >> $ZSH_CUSTOM/zsh-autosuggestions_custom.zsh
 
-# End of script
+brew install wget
+
+echo "in code, use command to install code to path"
+read
