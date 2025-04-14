@@ -77,7 +77,7 @@ ZSH_THEME="powerlevel10k/powerlevel10k"
 # Custom plugins may be added to $ZSH_CUSTOM/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
-plugins=(git autojump zsh-autosuggestions)
+plugins=(git autojump zsh-autosuggestions zsh-syntax-highlighting)
 
 source $ZSH/oh-my-zsh.sh
 
@@ -120,10 +120,15 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
   bindkey "^A" backward-word
 fi
 
+# ensure verbose logging for GitHub Copilot
+export GITHUB_COPILOT_VERBOSE=true
+export EDITOR='code'
 
-source /Users/johnmog/Repos/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+alias dotfiles='/usr/bin/git --git-dir=$HOME/.dotfiles/ --work-tree=$HOME'
+
+ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=60'
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
-[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
-
-[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+source ~/.p10k.zsh
+source ~/.fzf.zsh
+source $ZSH_CUSTOM/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
