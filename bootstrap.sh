@@ -8,14 +8,6 @@ log() {
   echo "[$(date +'%Y-%m-%d %H:%M:%S')] $1"
 }
 
-if [[ -n "$CODESPACES" ]]; then
-  log "Running in Codespaces..."
-  REPOS="/workspaces/.codespaces/.persistedshare"
-else
-  REPOS="$HOME/Repos"
-fi
-log "Using repository path: $REPOS"
-
 # Ensure the repository exists
 if [[ ! -d "$HOME/.dotfiles/" ]]; then
   log "Cloning dotfiles repository..."
@@ -37,6 +29,17 @@ done
 ln -sf "$HOME/.dotfiles/.shellrc" "$HOME/.shellrc"
 cd $HOME/
 
+if [[ -n "$CODESPACES" ]]; then
+  log "Running in Codespaces..."
+  REPOS="/workspaces/.codespaces/.persistedshare"
+  # Bug where shell is always bash in Codespaces
+  export SHELL=/bin/zsh
+  log "Set SHELL to $SHELL"
+else
+  REPOS="$HOME/Repos"
+fi
+log "Using repository path: $REPOS"
+
 # Install Homebrew if not installed
 if ! command -v brew &>/dev/null; then
   log "Installing Homebrew..."
@@ -56,6 +59,9 @@ if [[ "$OSTYPE" =~ darwin ]]; then
   brew install --cask iterm2 || log "Failed to install iTerm2"
   brew install --cask powershell || log "Failed to install PowerShell"
 fi
+
+# Configure shell
+sudo chsh -s "/bin/zsh" $(whoami) || log "Failed to change shell to zsh"
 
 # Install Oh My Zsh
 if [ ! -d "$HOME/.oh-my-zsh" ]; then
@@ -79,21 +85,13 @@ install_zsh_plugin() {
     git clone --depth=1 "$repo_url" "$dest_dir"
   fi
 }
-
 install_zsh_plugin "https://github.com/romkatv/powerlevel10k.git" "$ZSH_CUSTOM/themes/powerlevel10k"
 install_zsh_plugin "https://github.com/zsh-users/zsh-syntax-highlighting.git" "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting"
 install_zsh_plugin "https://github.com/zsh-users/zsh-autosuggestions" "$ZSH_CUSTOM/plugins/zsh-autosuggestions"
 
-# Configure shell
-if [ "$SHELL" != "/bin/zsh" ]; then
-  log "Setting up zsh as default shell..." 
-  sudo chsh -s /bin/zsh "$(whoami)"
-fi
-
 # Install command line tools
 log "Installing CLI tools..."
 brew install fzf || log "Failed to install fzf"
-"$(brew --prefix)"/opt/fzf/install --all --no-bash --no-fish
 brew install autojump || log "Failed to install autojump"
 
 # Install Vim plugins
@@ -122,3 +120,5 @@ log "2. Set key bindings in iTerm: Cmd+<- = b, other is f, Cmd+Del = 0x15"
 log "3. In VS Code, use command palette to install 'code' command in PATH"
 log "Setup complete!"
 log "=========================="
+
+exec zsh
