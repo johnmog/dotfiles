@@ -120,5 +120,3 @@ log "2. Set key bindings in iTerm: Cmd+<- = b, other is f, Cmd+Del = 0x15"
 log "3. In VS Code, use command palette to install 'code' command in PATH"
 log "Setup complete!"
 log "=========================="
-
-exec zsh
