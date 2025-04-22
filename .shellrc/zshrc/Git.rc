@@ -1,3 +1,7 @@
+function mkdircd {
+    mkdir -p "$1" && cd "$1"
+}
+
 function git-copy-branch-name {
     branch=$(git rev-parse --abbrev-ref HEAD)
     echo $branch

@@ -91,8 +91,9 @@ install_zsh_plugin "https://github.com/zsh-users/zsh-autosuggestions" "$ZSH_CUST
 
 # Install command line tools
 log "Installing CLI tools..."
-brew install fzf || log "Failed to install fzf"
-brew install autojump || log "Failed to install autojump"
+brew install fzf
+brew install fd
+brew install autojump
 
 # Install Vim plugins
 log "Setting up Vim plugins..."
@@ -112,7 +113,7 @@ if [ ! -d "$REPOS/onedark" ]; then
 fi
 
 log "Installing wget..."
-brew install wget || log "Failed to install wget"
+brew install wget
 
 log "=== Setup instructions ==="
 log "1. Set solarized dark theme in iTerm with CMD+i"
