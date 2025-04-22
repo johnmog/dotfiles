@@ -6,7 +6,7 @@ alias ll='ls -al'
 alias ld='ls -d */'
 alias cls='clear'
 alias mkcd='mkdircd'
-alias rdr='rd -r'
+alias rdr='rm -drf '
 
 # creds
 alias pkey='more ~/.ssh/id_rsa.pub | pbcopy | echo "=> Public key copied to pasteboard."'
