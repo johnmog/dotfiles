@@ -102,7 +102,11 @@ if [[ "$OSTYPE" =~ darwin ]]; then
 fi
 
 # Configure shell
-sudo chsh -s "/bin/zsh" $(whoami) || log "Failed to change shell to zsh"
+if [[ -n "$CODESPACES" ]]; then
+  log "Skipping shell change in Codespaces (shell is managed by the environment)"
+else
+  sudo chsh -s "/bin/zsh" $(whoami) || log "Failed to change shell to zsh"
+fi
 
 # Install Oh My Zsh
 if [ ! -d "$HOME/.oh-my-zsh" ]; then
