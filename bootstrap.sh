@@ -22,22 +22,14 @@ install_fzf_codespace() {
 install_fd_codespace() {
   if ! command -v fd &>/dev/null; then
     log "Installing fd directly in codespace..."
-    FD_VERSION="10.2.0"  # Updated to latest version as of 2024
-    FD_CHECKSUM="73d0e3fef50d25b2a0b1f6e3a2a6a4b0e1e6c5d4e3f2a1b0c9d8e7f6a5b4c3d2"  # SHA256 checksum
+    FD_VERSION="10.2.0"
     FD_FILENAME="fd-v${FD_VERSION}-x86_64-unknown-linux-gnu.tar.gz"
     FD_URL="https://github.com/sharkdp/fd/releases/download/v${FD_VERSION}/${FD_FILENAME}"
     
-    # Download to temporary file and verify checksum
+    # Download to temporary file
     TEMP_FILE="/tmp/${FD_FILENAME}"
     log "Downloading fd from ${FD_URL}..."
     curl -L -o "${TEMP_FILE}" "${FD_URL}"
-    
-    # Verify checksum (commented out for now - would need actual checksum)
-    # echo "${FD_CHECKSUM}  ${TEMP_FILE}" | sha256sum -c || {
-    #   log "ERROR: Checksum verification failed for fd"
-    #   rm -f "${TEMP_FILE}"
-    #   return 1
-    # }
     
     # Extract and install
     tar -xz -f "${TEMP_FILE}"
@@ -52,7 +44,6 @@ install_fd_codespace() {
 install_autojump_codespace() {
   if ! command -v autojump &>/dev/null; then
     log "Installing autojump directly in codespace..."
-    # Use a lighter installation method for autojump
     TEMP_DIR="/tmp/autojump-$$"  # Use PID for unique temp directory
     git clone https://github.com/wting/autojump.git "$TEMP_DIR"
     cd "$TEMP_DIR" || { log "ERROR: Failed to enter autojump directory"; return 1; }
