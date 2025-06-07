@@ -136,8 +136,6 @@ sudo chsh -s "/bin/zsh" $(whoami) || log "Failed to change shell to zsh"
 # Install Oh My Zsh
 if [ ! -d "$HOME/.oh-my-zsh" ]; then
   log "Installing Oh My Zsh..."
-  # SECURITY WARNING: This downloads and executes a script from the internet
-  # Consider downloading, reviewing, and executing manually for better security
   sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
 else
   log "Oh My Zsh is already installed"
@@ -193,8 +191,6 @@ fi
 
 # Install Vim plugins
 log "Setting up Vim plugins..."
-# SECURITY WARNING: Downloads vim-plug script from internet
-# Consider downloading and reviewing manually for better security
 if [[ ! -f "$HOME/.vim/autoload/plug.vim" ]]; then
   mkdir -p "$HOME/.vim/autoload"
   curl -fLo "$HOME/.vim/autoload/plug.vim" \
