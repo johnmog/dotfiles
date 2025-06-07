@@ -8,6 +8,43 @@ log() {
   echo "[$(date +'%Y-%m-%d %H:%M:%S')] $1"
 }
 
+# Codespace-specific installation functions
+install_fzf_codespace() {
+  if ! command -v fzf &>/dev/null; then
+    log "Installing fzf directly in codespace..."
+    git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
+    ~/.fzf/install --all --no-update-rc
+  else
+    log "fzf already installed"
+  fi
+}
+
+install_fd_codespace() {
+  if ! command -v fd &>/dev/null; then
+    log "Installing fd directly in codespace..."
+    FD_VERSION="8.7.1"
+    curl -L "https://github.com/sharkdp/fd/releases/download/v${FD_VERSION}/fd-v${FD_VERSION}-x86_64-unknown-linux-gnu.tar.gz" | tar xz
+    sudo mv "fd-v${FD_VERSION}-x86_64-unknown-linux-gnu/fd" /usr/local/bin/
+    rm -rf "fd-v${FD_VERSION}-x86_64-unknown-linux-gnu"
+  else
+    log "fd already installed"
+  fi
+}
+
+install_autojump_codespace() {
+  if ! command -v autojump &>/dev/null; then
+    log "Installing autojump directly in codespace..."
+    # Use a lighter installation method for autojump
+    git clone https://github.com/wting/autojump.git /tmp/autojump
+    cd /tmp/autojump
+    ./install.py --user
+    cd - > /dev/null
+    rm -rf /tmp/autojump
+  else
+    log "autojump already installed"
+  fi
+}
+
 # Ensure the repository exists
 if [[ ! -d "$HOME/.dotfiles/" ]]; then
   log "Cloning dotfiles repository..."
@@ -40,17 +77,21 @@ else
 fi
 log "Using repository path: $REPOS"
 
-# Install Homebrew if not installed
-if ! command -v brew &>/dev/null; then
-  log "Installing Homebrew..."
-  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-fi
+# Install Homebrew if not installed (skip in codespaces)
+if [[ -z "$CODESPACES" ]]; then
+  if ! command -v brew &>/dev/null; then
+    log "Installing Homebrew..."
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+  fi
 
-# Add Homebrew to PATH
-if [[ "$OSTYPE" =~ darwin ]]; then
-  eval "$(/opt/homebrew/bin/brew shellenv)"
+  # Add Homebrew to PATH
+  if [[ "$OSTYPE" =~ darwin ]]; then
+    eval "$(/opt/homebrew/bin/brew shellenv)"
+  else
+    eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+  fi
 else
-  eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+  log "Skipping Homebrew installation in Codespaces"
 fi
 
 # Install macOS specific applications
@@ -91,9 +132,17 @@ install_zsh_plugin "https://github.com/zsh-users/zsh-autosuggestions" "$ZSH_CUST
 
 # Install command line tools
 log "Installing CLI tools..."
-brew install fzf
-brew install fd
-brew install autojump
+if [[ -n "$CODESPACES" ]]; then
+  # Use direct installations in codespaces for speed
+  install_fzf_codespace
+  install_fd_codespace
+  install_autojump_codespace
+else
+  # Use homebrew for non-codespace environments
+  brew install fzf
+  brew install fd
+  brew install autojump
+fi
 
 # Install Vim plugins
 log "Setting up Vim plugins..."
@@ -113,7 +162,17 @@ if [ ! -d "$REPOS/onedark" ]; then
 fi
 
 log "Installing wget..."
-brew install wget
+if [[ -n "$CODESPACES" ]]; then
+  # Use apt-get in codespaces (much faster than homebrew)
+  if ! command -v wget &>/dev/null; then
+    sudo apt-get update -qq && sudo apt-get install -qq -y wget
+  else
+    log "wget already installed"
+  fi
+else
+  # Use homebrew for non-codespace environments
+  brew install wget
+fi
 
 log "=== Setup instructions ==="
 log "1. Set solarized dark theme in iTerm with CMD+i"
