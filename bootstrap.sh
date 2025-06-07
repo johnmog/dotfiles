@@ -110,8 +110,6 @@ fi
 if [[ -z "$CODESPACES" ]]; then
   if ! command -v brew &>/dev/null; then
     log "Installing Homebrew..."
-    # SECURITY WARNING: This downloads and executes a script from the internet
-    # Consider downloading, reviewing, and executing manually for better security
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
   fi
 
