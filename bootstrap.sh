@@ -37,7 +37,7 @@ install_autojump_codespace() {
     # Use a lighter installation method for autojump
     git clone https://github.com/wting/autojump.git /tmp/autojump
     cd /tmp/autojump
-    ./install.py --user
+    ./install.py
     cd - > /dev/null
     rm -rf /tmp/autojump
   else
