@@ -8,8 +8,8 @@ alias cls='clear'
 alias mkcd='mkdircd'
 alias rdr='rm -drf '
 
-# creds
-alias pkey='more ~/.ssh/id_rsa.pub | pbcopy | echo "=> Public key copied to pasteboard."'
+# creds - Security: Only copy public key, never expose private key path
+alias pkey='if [[ -f ~/.ssh/id_rsa.pub ]]; then cat ~/.ssh/id_rsa.pub | pbcopy && echo "=> Public key copied to pasteboard."; else echo "ERROR: Public key file not found at ~/.ssh/id_rsa.pub"; fi'
 
 # git
 alias gbn='git-copy-branch-name'

@@ -22,10 +22,20 @@ install_fzf_codespace() {
 install_fd_codespace() {
   if ! command -v fd &>/dev/null; then
     log "Installing fd directly in codespace..."
-    FD_VERSION="8.7.1"
-    curl -L "https://github.com/sharkdp/fd/releases/download/v${FD_VERSION}/fd-v${FD_VERSION}-x86_64-unknown-linux-gnu.tar.gz" | tar xz
+    FD_VERSION="10.2.0"
+    FD_FILENAME="fd-v${FD_VERSION}-x86_64-unknown-linux-gnu.tar.gz"
+    FD_URL="https://github.com/sharkdp/fd/releases/download/v${FD_VERSION}/${FD_FILENAME}"
+    
+    # Download to temporary file
+    TEMP_FILE="/tmp/${FD_FILENAME}"
+    log "Downloading fd from ${FD_URL}..."
+    curl -L -o "${TEMP_FILE}" "${FD_URL}"
+    
+    # Extract and install
+    tar -xz -f "${TEMP_FILE}"
     sudo mv "fd-v${FD_VERSION}-x86_64-unknown-linux-gnu/fd" /usr/local/bin/
-    rm -rf "fd-v${FD_VERSION}-x86_64-unknown-linux-gnu"
+    rm -rf "fd-v${FD_VERSION}-x86_64-unknown-linux-gnu" "${TEMP_FILE}"
+    log "fd installed successfully"
   else
     log "fd already installed"
   fi
@@ -34,12 +44,20 @@ install_fd_codespace() {
 install_autojump_codespace() {
   if ! command -v autojump &>/dev/null; then
     log "Installing autojump directly in codespace..."
-    # Use a lighter installation method for autojump
-    git clone https://github.com/wting/autojump.git /tmp/autojump
-    cd /tmp/autojump
-    ./install.py
+    TEMP_DIR="/tmp/autojump-$$"  # Use PID for unique temp directory
+    git clone https://github.com/wting/autojump.git "$TEMP_DIR"
+    cd "$TEMP_DIR" || { log "ERROR: Failed to enter autojump directory"; return 1; }
+    # Security: Verify we're in the right directory before executing
+    if [[ -f "install.py" && -f "bin/autojump" ]]; then
+      ./install.py
+    else
+      log "ERROR: autojump installation files not found"
+      cd - > /dev/null
+      rm -rf "$TEMP_DIR"
+      return 1
+    fi
     cd - > /dev/null
-    rm -rf /tmp/autojump
+    rm -rf "$TEMP_DIR"
   else
     log "autojump already installed"
   fi
@@ -61,7 +79,12 @@ for file in $(ls -A "$HOME/.dotfiles"); do
   if [[ "$file" == ".git" || "$file" == ".gitignore" || "$file" == ".gitmodules" ]]; then
     continue
   fi
-  ln -sf "$file" "$HOME/$file"
+  # Security: Validate filename to prevent path traversal
+  if [[ "$file" =~ \.\./|\.\. || "$file" =~ ^/ ]]; then
+    log "WARNING: Skipping potentially unsafe file: $file"
+    continue
+  fi
+  ln -sf "$HOME/.dotfiles/$file" "$HOME/$file"
 done
 ln -sf "$HOME/.dotfiles/.shellrc" "$HOME/.shellrc"
 cd $HOME/
@@ -76,6 +99,12 @@ else
   REPOS="$HOME/Repos"
 fi
 log "Using repository path: $REPOS"
+
+# Create repository directory if it doesn't exist
+if [[ ! -d "$REPOS" ]]; then
+  log "Creating repository directory: $REPOS"
+  mkdir -p "$REPOS" || { log "ERROR: Failed to create repository directory"; exit 1; }
+fi
 
 # Install Homebrew if not installed (skip in codespaces)
 if [[ -z "$CODESPACES" ]]; then
@@ -120,10 +149,26 @@ if [ -z "$ZSH_CUSTOM" ]; then
 fi
 
 install_zsh_plugin() {
-  local repo_url=$1
-  local dest_dir=$2
+  local repo_url="$1"
+  local dest_dir="$2"
+  
+  # Input validation
+  if [[ -z "$repo_url" || -z "$dest_dir" ]]; then
+    log "ERROR: install_zsh_plugin requires repo_url and dest_dir parameters"
+    return 1
+  fi
+  
+  # Security: Validate destination directory is within expected path
+  if [[ "$dest_dir" != "$ZSH_CUSTOM"* ]]; then
+    log "ERROR: Destination directory outside of ZSH_CUSTOM: $dest_dir"
+    return 1
+  fi
+  
   if [ ! -d "$dest_dir" ]; then
+    log "Installing plugin from $repo_url to $dest_dir"
     git clone --depth=1 "$repo_url" "$dest_dir"
+  else
+    log "Plugin already installed: $dest_dir"
   fi
 }
 install_zsh_plugin "https://github.com/romkatv/powerlevel10k.git" "$ZSH_CUSTOM/themes/powerlevel10k"
@@ -146,12 +191,24 @@ fi
 
 # Install Vim plugins
 log "Setting up Vim plugins..."
-curl -fLo ~/.vim/autoload/plug.vim --create-dirs \
-    https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+if [[ ! -f "$HOME/.vim/autoload/plug.vim" ]]; then
+  mkdir -p "$HOME/.vim/autoload"
+  curl -fLo "$HOME/.vim/autoload/plug.vim" \
+      https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+else
+  log "vim-plug already installed"
+fi
 
 if [ ! -d "$REPOS/powerline" ]; then
   git clone --depth=1 https://github.com/powerline/fonts.git "$REPOS/powerline"
-  (cd "$REPOS/powerline" && ./install.sh)
+  # Security: Verify we have the expected script before executing
+  if [[ -f "$REPOS/powerline/install.sh" && -x "$REPOS/powerline/install.sh" ]]; then
+    (cd "$REPOS/powerline" && ./install.sh)
+  else
+    log "ERROR: powerline install.sh not found or not executable"
+  fi
+else
+  log "Powerline fonts already installed"
 fi
 
 if [ ! -d "$REPOS/onedark" ]; then
