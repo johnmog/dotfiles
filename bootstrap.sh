@@ -8,7 +8,6 @@ log() {
   echo "[$(date +'%Y-%m-%d %H:%M:%S')] $1"
 }
 
-# Codespace-specific installation functions
 install_fzf_codespace() {
   if ! command -v fzf &>/dev/null; then
     log "Installing fzf directly in codespace..."
@@ -60,6 +59,24 @@ install_autojump_codespace() {
     rm -rf "$TEMP_DIR"
   else
     log "autojump already installed"
+  fi
+}
+
+install_prettyping_codespace() {
+  if ! command -v prettyping &>/dev/null; then
+    log "Installing prettyping directly in codespace..."
+    PRETTYPING_URL="https://raw.githubusercontent.com/denilsonsa/prettyping/master/prettyping"
+    PRETTYPING_PATH="/usr/local/bin/prettyping"
+    
+    # Download prettyping
+    log "Downloading prettyping from ${PRETTYPING_URL}..."
+    sudo wget -q "${PRETTYPING_URL}" -O "${PRETTYPING_PATH}"
+    
+    # Make it executable
+    sudo chmod +x "${PRETTYPING_PATH}"
+    log "prettyping installed successfully"
+  else
+    log "prettyping already installed"
   fi
 }
 
@@ -182,11 +199,13 @@ if [[ -n "$CODESPACES" ]]; then
   install_fzf_codespace
   install_fd_codespace
   install_autojump_codespace
+  install_prettyping_codespace
 else
   # Use homebrew for non-codespace environments
   brew install fzf
   brew install fd
   brew install autojump
+  brew install prettyping
 fi
 
 # Install Vim plugins
