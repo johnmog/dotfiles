@@ -51,3 +51,7 @@ ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=60'
 
 source ~/.p10k.zsh
 source <(fzf --zsh)
+
+if [ -f "$HOME/.secrets" ]; then
+  source "$HOME/.secrets"
+fi
