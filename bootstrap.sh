@@ -87,14 +87,11 @@ install_nvm() {
     return 0
   fi
   
-  log "Installing nvm directly in codespace..."
-  
   # Download and install nvm using the official installation script
   NVM_INSTALL_URL="https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh"
   
   log "Downloading nvm installation script from ${NVM_INSTALL_URL}..."
   
-  # Download and execute the installation script with error handling
   if curl -o- "$NVM_INSTALL_URL" | bash; then
     log "nvm installation script completed successfully"
     
@@ -238,7 +235,7 @@ else
   brew install autojump
   brew install prettyping
   install_nvm
-fi 
+fi
 
 # Install Vim plugins
 log "Setting up Vim plugins..."
