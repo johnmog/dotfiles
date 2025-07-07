@@ -52,6 +52,11 @@ ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=60'
 source ~/.p10k.zsh
 source <(fzf --zsh)
 
+# nvm configuration
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+
 if [ -f "$HOME/.secrets" ]; then
   source "$HOME/.secrets"
 fi
