@@ -238,7 +238,7 @@ else
   brew install autojump
   brew install prettyping
   install_nvm
-  
+fi 
 
 # Install Vim plugins
 log "Setting up Vim plugins..."
