@@ -80,6 +80,43 @@ install_prettyping_codespace() {
   fi
 }
 
+install_nvm_codespace() {
+  # Check if nvm is already installed
+  if [[ -d "$HOME/.nvm" ]] && [[ -s "$HOME/.nvm/nvm.sh" ]]; then
+    log "nvm already installed"
+    return 0
+  fi
+  
+  log "Installing nvm directly in codespace..."
+  
+  # Download and install nvm using the official installation script
+  NVM_INSTALL_URL="https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh"
+  
+  # Input validation - ensure URL is the expected one for security
+  if [[ "$NVM_INSTALL_URL" != "https://raw.githubusercontent.com/nvm-sh/nvm/"* ]]; then
+    log "ERROR: Invalid nvm installation URL"
+    return 1
+  fi
+  
+  log "Downloading nvm installation script from ${NVM_INSTALL_URL}..."
+  
+  # Download and execute the installation script with error handling
+  if curl -o- "$NVM_INSTALL_URL" | bash; then
+    log "nvm installation script completed successfully"
+    
+    # Verify installation
+    if [[ -d "$HOME/.nvm" ]] && [[ -s "$HOME/.nvm/nvm.sh" ]]; then
+      log "nvm installed successfully"
+    else
+      log "ERROR: nvm installation verification failed"
+      return 1
+    fi
+  else
+    log "ERROR: Failed to download or execute nvm installation script"
+    return 1
+  fi
+}
+
 # Ensure the repository exists
 if [[ ! -d "$HOME/.dotfiles/" ]]; then
   log "Cloning dotfiles repository..."
@@ -200,12 +237,45 @@ if [[ -n "$CODESPACES" ]]; then
   install_fd_codespace
   install_autojump_codespace
   install_prettyping_codespace
+  install_nvm_codespace
 else
   # Use homebrew for non-codespace environments
   brew install fzf
   brew install fd
   brew install autojump
   brew install prettyping
+  
+  # Install nvm using the official installation script
+  if [[ ! -d "$HOME/.nvm" ]] || [[ ! -s "$HOME/.nvm/nvm.sh" ]]; then
+    log "Installing nvm..."
+    NVM_INSTALL_URL="https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh"
+    
+    # Input validation - ensure URL is the expected one for security
+    if [[ "$NVM_INSTALL_URL" != "https://raw.githubusercontent.com/nvm-sh/nvm/"* ]]; then
+      log "ERROR: Invalid nvm installation URL"
+      exit 1
+    fi
+    
+    log "Downloading nvm installation script from ${NVM_INSTALL_URL}..."
+    
+    # Download and execute the installation script with error handling
+    if curl -o- "$NVM_INSTALL_URL" | bash; then
+      log "nvm installation script completed successfully"
+      
+      # Verify installation
+      if [[ -d "$HOME/.nvm" ]] && [[ -s "$HOME/.nvm/nvm.sh" ]]; then
+        log "nvm installed successfully"
+      else
+        log "ERROR: nvm installation verification failed"
+        exit 1
+      fi
+    else
+      log "ERROR: Failed to download or execute nvm installation script"
+      exit 1
+    fi
+  else
+    log "nvm already installed"
+  fi
 fi
 
 # Install Vim plugins
