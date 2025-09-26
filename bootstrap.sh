@@ -80,6 +80,16 @@ install_prettyping_codespace() {
   fi
 }
 
+install_starship_codespace() {
+  if ! command -v starship &>/dev/null; then
+    log "Installing starship directly in codespace..."
+    curl -sS https://starship.rs/install.sh | sh
+  else
+    log "starship already installed"
+    return 0
+  fi
+}
+
 install_nvm() {
   # Check if nvm is already installed
   if [[ -d "$HOME/.nvm" ]] && [[ -s "$HOME/.nvm/nvm.sh" ]]; then
@@ -216,7 +226,6 @@ install_zsh_plugin() {
     log "Plugin already installed: $dest_dir"
   fi
 }
-install_zsh_plugin "https://github.com/romkatv/powerlevel10k.git" "$ZSH_CUSTOM/themes/powerlevel10k"
 install_zsh_plugin "https://github.com/zsh-users/zsh-syntax-highlighting.git" "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting"
 install_zsh_plugin "https://github.com/zsh-users/zsh-autosuggestions" "$ZSH_CUSTOM/plugins/zsh-autosuggestions"
 
@@ -228,12 +237,14 @@ if [[ -n "$CODESPACES" ]]; then
   install_fd_codespace
   install_autojump_codespace
   install_prettyping_codespace
+  install_starship_codespace
 else
   # Use homebrew for non-codespace environments
   brew install fzf
   brew install fd
   brew install autojump
   brew install prettyping
+  brew install starship
   install_nvm
 fi
 
