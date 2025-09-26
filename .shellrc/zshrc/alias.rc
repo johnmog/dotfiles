@@ -27,3 +27,6 @@ alias -g .....='../../../..'
 alias k='kubectl'
 alias d='docker'
 alias dc='docker-compose'
+
+# networking
+alias tailscale="/Applications/Tailscale.app/Contents/MacOS/Tailscale"
