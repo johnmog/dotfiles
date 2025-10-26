@@ -7,7 +7,7 @@ This repository contains personal dotfiles and configuration files for shell env
 - `.zshrc` - Zsh shell configuration
 - `.vimrc` - Vim editor configuration
 - `.shellrc/` - Additional shell configuration files
-  - `.shellrc/zshrc/` - Zsh-specific configuration files
+- `.shellrc/zshrc/` - Zsh-specific configuration files
 - `bootstrap.sh` - Main installation and setup script
 - `.gitconfig` - Git configuration
 - `.config/` - Application-specific configuration directory
