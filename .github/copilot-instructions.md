@@ -7,8 +7,13 @@ This repository contains personal dotfiles and configuration files for shell env
 - `.zshrc` - Zsh shell configuration
 - `.vimrc` - Vim editor configuration
 - `.shellrc/` - Additional shell configuration files
+  - `.shellrc/zshrc/` - Zsh-specific configuration files
 - `bootstrap.sh` - Main installation and setup script
 - `.gitconfig` - Git configuration
+- `.config/` - Application-specific configuration directory
+- `.gitignore` - Git ignore patterns
+- `ext_list.txt` - List of extensions
+- `fix_ext.sh` - Extension fixing script
 
 ## Shell Scripting Standards
 
@@ -51,7 +56,7 @@ This repository contains personal dotfiles and configuration files for shell env
 ### Zsh Configuration
 
 - Organize plugins in the `plugins=()` array
-- Source additional configurations from `.shellrc/` directory
+- Source additional configurations from `.shellrc/zshrc/` directory
 - Use clear variable names and export them appropriately
 - Document any non-standard key bindings
 
@@ -71,7 +76,8 @@ This repository contains personal dotfiles and configuration files for shell env
 
 ## Code Style
 
-- Use 2-space indentation for shell scripts
+- Use 2-space indentation for shell scripts (bash/zsh)
+- Use 4-space indentation for vim configuration files (as configured with `tabstop=4`)
 - Use meaningful variable names in UPPER_CASE for constants
 - Use lowercase for local variables
 - Quote variables to prevent word splitting
