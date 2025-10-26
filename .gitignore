@@ -1,3 +1,22 @@
 dotfiles
 .DS_Store
+
+# Secrets and sensitive files
 .secrets
+*.pem
+*.key
+*.p12
+.env
+.env.local
+.env*.local
+
+# Cloud provider credentials
+.aws/
+.gcloud/
+.azure/
+
+# Git credentials
+.git-credentials
+
+# IDE settings that might contain sensitive data
+.vscode/settings.json
