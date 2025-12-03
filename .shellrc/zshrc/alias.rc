@@ -17,6 +17,10 @@ alias gcb='git-clear-branch'
 alias gpull='git-pull'
 alias gbranch='git-create-branch'
 
+# github 
+alias codespace='gh cs create'
+alias codespaces='gh cs list --json createdAt,lastUsedAt,displayName,repository | jq ".[] | {createdAt, lastUsedAt, displayName, repository}"'
+
 # cd
 alias -g ..='..'
 alias -g ...='../..'

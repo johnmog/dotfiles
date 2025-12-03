@@ -1,9 +1,0 @@
-# codespace
-function codespace() {
-  if [[ -z "$1" ]]; then
-    echo "ERROR: Repository name required"
-    return 1
-  fi
-  CODESPACE=$(gh cs create -r "github/$*" -b master)
-  gh cs code --insiders -c "$CODESPACE"
-}
