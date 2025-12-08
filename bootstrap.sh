@@ -83,7 +83,7 @@ install_prettyping_codespace() {
 install_starship_codespace() {
   if ! command -v starship &>/dev/null; then
     log "Installing starship directly in codespace..."
-    curl -sS https://starship.rs/install.sh | sh
+    curl -sS https://starship.rs/install.sh | sh -s -- -y
   else
     log "starship already installed"
     return 0
