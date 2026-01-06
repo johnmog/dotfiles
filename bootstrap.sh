@@ -63,7 +63,8 @@ install_fzf_codespace() {
   if ! command -v fzf &>/dev/null; then
     log "Installing fzf directly in codespace..."
     git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
-    ~/.fzf/install --all --no-update-rc
+    # Use --no-fish to skip fish shell configuration which fails in Codespaces
+    ~/.fzf/install --all --no-update-rc --no-fish
   else
     log "fzf already installed"
   fi
