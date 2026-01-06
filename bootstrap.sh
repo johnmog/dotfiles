@@ -10,25 +10,52 @@ log() {
 # Export log function for use in background jobs
 export -f log
 
-# Array to track background job PIDs for parallel execution
+# Arrays to track background job PIDs and names for parallel execution
 PARALLEL_PIDS=()
+PARALLEL_NAMES=()
 
 # Run a command in the background and track its PID
+# Usage: run_parallel <function_name> [args...]
 run_parallel() {
+  local cmd_name="$1"
   "$@" &
-  PARALLEL_PIDS+=($!)
+  local pid=$!
+  # Verify the background process started
+  if [[ -n "$pid" ]] && kill -0 "$pid" 2>/dev/null; then
+    PARALLEL_PIDS+=("$pid")
+    PARALLEL_NAMES+=("$cmd_name")
+  else
+    log "WARNING: Failed to start background job: $cmd_name"
+  fi
 }
 
 # Wait for all tracked parallel jobs to complete
 # Returns 0 if all jobs succeeded, 1 if any failed
+# Logs which specific jobs failed
 wait_parallel() {
   local failed=0
-  for pid in "${PARALLEL_PIDS[@]}"; do
+  local failed_jobs=()
+  
+  # Handle empty array case
+  if [[ ${#PARALLEL_PIDS[@]} -eq 0 ]]; then
+    return 0
+  fi
+  
+  for i in "${!PARALLEL_PIDS[@]}"; do
+    local pid="${PARALLEL_PIDS[$i]}"
+    local name="${PARALLEL_NAMES[$i]:-unknown}"
     if ! wait "$pid"; then
       failed=1
+      failed_jobs+=("$name")
     fi
   done
+  
+  if [[ $failed -eq 1 ]]; then
+    log "WARNING: The following jobs failed: ${failed_jobs[*]}"
+  fi
+  
   PARALLEL_PIDS=()
+  PARALLEL_NAMES=()
   return $failed
 }
 
@@ -265,7 +292,7 @@ export -f install_zsh_plugin
 log "Installing Zsh plugins in parallel..."
 run_parallel install_zsh_plugin "https://github.com/zsh-users/zsh-syntax-highlighting.git" "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting"
 run_parallel install_zsh_plugin "https://github.com/zsh-users/zsh-autosuggestions" "$ZSH_CUSTOM/plugins/zsh-autosuggestions"
-wait_parallel || log "WARNING: Some Zsh plugin installations may have failed"
+wait_parallel
 
 # Install command line tools
 log "Installing CLI tools..."
@@ -278,7 +305,7 @@ if [[ -n "$CODESPACES" ]]; then
   run_parallel install_autojump_codespace
   run_parallel install_prettyping_codespace
   run_parallel install_starship_codespace
-  wait_parallel || log "WARNING: Some CLI tool installations may have failed"
+  wait_parallel
 else
   # Use homebrew for non-codespace environments
   # Homebrew handles parallelization internally with --jobs
@@ -332,7 +359,7 @@ export -f install_onedark_theme
 log "Installing fonts and themes in parallel..."
 run_parallel install_powerline_fonts
 run_parallel install_onedark_theme
-wait_parallel || log "WARNING: Some font/theme installations may have failed"
+wait_parallel
 
 log "Installing wget..."
 if [[ -n "$CODESPACES" ]]; then
