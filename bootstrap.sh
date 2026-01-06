@@ -7,6 +7,57 @@ set -e
 log() {
   echo "[$(date +'%Y-%m-%d %H:%M:%S')] $1"
 }
+# Export log function for use in background jobs
+export -f log
+
+# Arrays to track background job PIDs and names for parallel execution
+PARALLEL_PIDS=()
+PARALLEL_NAMES=()
+
+# Run a command in the background and track its PID
+# Usage: run_parallel <function_name> [args...]
+run_parallel() {
+  local cmd_name="$1"
+  "$@" &
+  local pid=$!
+  # Verify the background process started
+  if [[ -n "$pid" ]] && kill -0 "$pid" 2>/dev/null; then
+    PARALLEL_PIDS+=("$pid")
+    PARALLEL_NAMES+=("$cmd_name")
+  else
+    log "WARNING: Failed to start background job: $cmd_name"
+  fi
+}
+
+# Wait for all tracked parallel jobs to complete
+# Returns 0 if all jobs succeeded, 1 if any failed
+# Logs which specific jobs failed
+wait_parallel() {
+  local failed=0
+  local failed_jobs=()
+  
+  # Handle empty array case
+  if [[ ${#PARALLEL_PIDS[@]} -eq 0 ]]; then
+    return 0
+  fi
+  
+  for i in "${!PARALLEL_PIDS[@]}"; do
+    local pid="${PARALLEL_PIDS[$i]}"
+    local name="${PARALLEL_NAMES[$i]:-unknown}"
+    if ! wait "$pid"; then
+      failed=1
+      failed_jobs+=("$name")
+    fi
+  done
+  
+  if [[ $failed -eq 1 ]]; then
+    log "WARNING: The following jobs failed: ${failed_jobs[*]}"
+  fi
+  
+  PARALLEL_PIDS=()
+  PARALLEL_NAMES=()
+  return $failed
+}
 
 install_fzf_codespace() {
   if ! command -v fzf &>/dev/null; then
@@ -17,6 +68,7 @@ install_fzf_codespace() {
     log "fzf already installed"
   fi
 }
+export -f install_fzf_codespace
 
 install_fd_codespace() {
   if ! command -v fd &>/dev/null; then
@@ -25,20 +77,23 @@ install_fd_codespace() {
     FD_FILENAME="fd-v${FD_VERSION}-x86_64-unknown-linux-gnu.tar.gz"
     FD_URL="https://github.com/sharkdp/fd/releases/download/v${FD_VERSION}/${FD_FILENAME}"
     
-    # Download to temporary file
-    TEMP_FILE="/tmp/${FD_FILENAME}"
+    # Download to temporary file - use unique name based on PID
+    TEMP_FILE="/tmp/fd-$$-${FD_FILENAME}"
     log "Downloading fd from ${FD_URL}..."
     curl -L -o "${TEMP_FILE}" "${FD_URL}"
     
-    # Extract and install
-    tar -xz -f "${TEMP_FILE}"
-    sudo mv "fd-v${FD_VERSION}-x86_64-unknown-linux-gnu/fd" /usr/local/bin/
-    rm -rf "fd-v${FD_VERSION}-x86_64-unknown-linux-gnu" "${TEMP_FILE}"
+    # Extract to unique directory and install
+    EXTRACT_DIR="/tmp/fd-extract-$$"
+    mkdir -p "$EXTRACT_DIR"
+    tar -xz -f "${TEMP_FILE}" -C "$EXTRACT_DIR"
+    sudo mv "$EXTRACT_DIR/fd-v${FD_VERSION}-x86_64-unknown-linux-gnu/fd" /usr/local/bin/
+    rm -rf "$EXTRACT_DIR" "${TEMP_FILE}"
     log "fd installed successfully"
   else
     log "fd already installed"
   fi
 }
+export -f install_fd_codespace
 
 install_autojump_codespace() {
   if ! command -v autojump &>/dev/null; then
@@ -61,6 +116,7 @@ install_autojump_codespace() {
     log "autojump already installed"
   fi
 }
+export -f install_autojump_codespace
 
 install_prettyping_codespace() {
   if ! command -v prettyping &>/dev/null; then
@@ -79,6 +135,7 @@ install_prettyping_codespace() {
     log "prettyping already installed"
   fi
 }
+export -f install_prettyping_codespace
 
 install_starship_codespace() {
   if ! command -v starship &>/dev/null; then
@@ -89,6 +146,7 @@ install_starship_codespace() {
     return 0
   fi
 }
+export -f install_starship_codespace
 
 install_nvm() {
   # Check if nvm is already installed
@@ -153,6 +211,7 @@ if [[ -n "$CODESPACES" ]]; then
 else
   REPOS="$HOME/Repos"
 fi
+export REPOS  # Export for use in parallel background jobs
 log "Using repository path: $REPOS"
 
 # Create repository directory if it doesn't exist
@@ -202,6 +261,7 @@ log "Installing Zsh themes and plugins..."
 if [ -z "$ZSH_CUSTOM" ]; then
   ZSH_CUSTOM="$HOME/.oh-my-zsh/custom"
 fi
+export ZSH_CUSTOM
 
 install_zsh_plugin() {
   local repo_url="$1"
@@ -226,25 +286,30 @@ install_zsh_plugin() {
     log "Plugin already installed: $dest_dir"
   fi
 }
-install_zsh_plugin "https://github.com/zsh-users/zsh-syntax-highlighting.git" "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting"
-install_zsh_plugin "https://github.com/zsh-users/zsh-autosuggestions" "$ZSH_CUSTOM/plugins/zsh-autosuggestions"
+export -f install_zsh_plugin
+
+# Install zsh plugins in parallel for faster setup
+log "Installing Zsh plugins in parallel..."
+run_parallel install_zsh_plugin "https://github.com/zsh-users/zsh-syntax-highlighting.git" "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting"
+run_parallel install_zsh_plugin "https://github.com/zsh-users/zsh-autosuggestions" "$ZSH_CUSTOM/plugins/zsh-autosuggestions"
+wait_parallel
 
 # Install command line tools
 log "Installing CLI tools..."
 if [[ -n "$CODESPACES" ]]; then
   # Use direct installations in codespaces for speed
-  install_fzf_codespace
-  install_fd_codespace
-  install_autojump_codespace
-  install_prettyping_codespace
-  install_starship_codespace
+  # Run all tool installations in parallel for faster setup
+  log "Running CLI tool installations in parallel..."
+  run_parallel install_fzf_codespace
+  run_parallel install_fd_codespace
+  run_parallel install_autojump_codespace
+  run_parallel install_prettyping_codespace
+  run_parallel install_starship_codespace
+  wait_parallel
 else
   # Use homebrew for non-codespace environments
-  brew install fzf
-  brew install fd
-  brew install autojump
-  brew install prettyping
-  brew install starship
+  # Homebrew handles parallelization internally with --jobs
+  brew install fzf fd autojump prettyping starship
   install_nvm
 fi
 
@@ -258,24 +323,43 @@ else
   log "vim-plug already installed"
 fi
 
-if [ ! -d "$REPOS/powerline" ]; then
-  git clone --depth=1 https://github.com/powerline/fonts.git "$REPOS/powerline"
-  # Security: Verify we have the expected script before executing
-  if [[ -f "$REPOS/powerline/install.sh" && -x "$REPOS/powerline/install.sh" ]]; then
-    (cd "$REPOS/powerline" && ./install.sh)
+# Helper function to install powerline fonts
+install_powerline_fonts() {
+  if [ ! -d "$REPOS/powerline" ]; then
+    log "Cloning powerline fonts..."
+    git clone --depth=1 https://github.com/powerline/fonts.git "$REPOS/powerline"
+    # Security: Verify we have the expected script before executing
+    if [[ -f "$REPOS/powerline/install.sh" && -x "$REPOS/powerline/install.sh" ]]; then
+      (cd "$REPOS/powerline" && ./install.sh)
+    else
+      log "ERROR: powerline install.sh not found or not executable"
+      return 1
+    fi
   else
-    log "ERROR: powerline install.sh not found or not executable"
+    log "Powerline fonts already installed"
   fi
-else
-  log "Powerline fonts already installed"
-fi
+}
+export -f install_powerline_fonts
 
-if [ ! -d "$REPOS/onedark" ]; then
-  git clone --depth=1 https://github.com/joshdick/onedark.vim.git "$REPOS/onedark"
-  mkdir -p "$HOME/.vim/colors" "$HOME/.vim/autoload"
-  cp "$REPOS/onedark/colors/onedark.vim" "$HOME/.vim/colors/"
-  cp "$REPOS/onedark/autoload/onedark.vim" "$HOME/.vim/autoload/"
-fi
+# Helper function to install onedark theme
+install_onedark_theme() {
+  if [ ! -d "$REPOS/onedark" ]; then
+    log "Cloning onedark theme..."
+    git clone --depth=1 https://github.com/joshdick/onedark.vim.git "$REPOS/onedark"
+    mkdir -p "$HOME/.vim/colors" "$HOME/.vim/autoload"
+    cp "$REPOS/onedark/colors/onedark.vim" "$HOME/.vim/colors/"
+    cp "$REPOS/onedark/autoload/onedark.vim" "$HOME/.vim/autoload/"
+  else
+    log "Onedark theme already installed"
+  fi
+}
+export -f install_onedark_theme
+
+# Install powerline fonts and onedark theme in parallel
+log "Installing fonts and themes in parallel..."
+run_parallel install_powerline_fonts
+run_parallel install_onedark_theme
+wait_parallel
 
 log "Installing wget..."
 if [[ -n "$CODESPACES" ]]; then
