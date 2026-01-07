@@ -310,7 +310,7 @@ if [[ -n "$CODESPACES" ]]; then
 else
   # Use homebrew for non-codespace environments
   # Homebrew handles parallelization internally with --jobs
-  brew install fzf fd autojump prettyping starship
+  brew install fzf fd autojump prettyping starship pandoc
   install_nvm
 fi
 

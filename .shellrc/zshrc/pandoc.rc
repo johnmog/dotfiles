@@ -1,0 +1,74 @@
+# pandoc aliases and functions for document conversion
+
+# Convert a document to GitHub Flavored Markdown
+# Usage: tomd <input_file>
+# Example: tomd document.docx
+function tomd {
+  if [[ -z "$1" ]]; then
+    echo "ERROR: Input file required"
+    echo "Usage: tomd <input_file>"
+    return 1
+  fi
+
+  if [[ ! -f "$1" ]]; then
+    echo "ERROR: File not found: $1"
+    return 1
+  fi
+
+  # Get the filename without extension
+  local input_file="$1"
+  local basename="${input_file%.*}"
+  local output_file="${basename}.md"
+
+  if pandoc "$input_file" -t gfm --extract-media=. -o "$output_file"; then
+    echo "Converted: $input_file -> $output_file"
+  else
+    echo "ERROR: Conversion failed"
+    return 1
+  fi
+}
+
+# Download a file from SharePoint URL and convert to markdown
+# Usage: sptomd <sharepoint_url>
+# Example: sptomd "https://company.sharepoint.com/sites/team/Shared%20Documents/document.docx"
+function sptomd {
+  if [[ -z "$1" ]]; then
+    echo "ERROR: SharePoint URL required"
+    echo "Usage: sptomd <sharepoint_url>"
+    return 1
+  fi
+
+  local url="$1"
+  local downloads_dir="$HOME/Downloads"
+
+  # Extract filename from URL and decode URL encoding
+  local url_filename
+  url_filename=$(basename "$url")
+  local filename
+  filename=$(python3 -c "import urllib.parse; print(urllib.parse.unquote('$url_filename'))")
+
+  if [[ -z "$filename" ]]; then
+    echo "ERROR: Could not extract filename from URL"
+    return 1
+  fi
+
+  local download_path="${downloads_dir}/${filename}"
+
+  # Create downloads directory if it doesn't exist
+  mkdir -p "$downloads_dir"
+
+  echo "Downloading: $filename"
+  if curl -L -o "$download_path" "$url"; then
+    echo "Downloaded to: $download_path"
+    
+    # Convert the downloaded file
+    pushd "$downloads_dir" > /dev/null || return 1
+    tomd "$filename"
+    local result=$?
+    popd > /dev/null
+    return $result
+  else
+    echo "ERROR: Download failed"
+    return 1
+  fi
+}
