@@ -200,7 +200,9 @@ for file in $(ls -A "$HOME/.dotfiles"); do
   fi
   ln -sf "$HOME/.dotfiles/$file" "$HOME/$file"
 done
+# Explicitly symlink key dotfile directories to ensure they are properly linked
 ln -sf "$HOME/.dotfiles/.shellrc" "$HOME/.shellrc"
+ln -sf "$HOME/.dotfiles/.copilot" "$HOME/.copilot"
 cd $HOME/
 
 if [[ -n "$CODESPACES" ]]; then
