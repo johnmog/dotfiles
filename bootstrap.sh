@@ -188,21 +188,6 @@ if [[ ! -d "$HOME/.dotfiles/" ]]; then
   dotfiles config --local status.showUntrackedFiles no
 fi
 
-# Create symbolic links for every file in the dotfiles repository
-for file in $(ls -A "$HOME/.dotfiles"); do
-  if [[ "$file" == ".git" || "$file" == ".gitignore" || "$file" == ".gitmodules" ]]; then
-    continue
-  fi
-  # Security: Validate filename to prevent path traversal
-  if [[ "$file" =~ \.\./|\.\. || "$file" =~ ^/ ]]; then
-    log "WARNING: Skipping potentially unsafe file: $file"
-    continue
-  fi
-  ln -sf "$HOME/.dotfiles/$file" "$HOME/$file"
-done
-# Explicitly symlink key dotfile directories to ensure they are properly linked
-ln -sf "$HOME/.dotfiles/.shellrc" "$HOME/.shellrc"
-ln -sf "$HOME/.dotfiles/.copilot" "$HOME/.copilot"
 cd $HOME/
 
 if [[ -n "$CODESPACES" ]]; then
