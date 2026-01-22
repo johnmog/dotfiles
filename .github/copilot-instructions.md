@@ -11,6 +11,7 @@ This repository contains personal dotfiles and configuration files for shell env
 - `bootstrap.sh` - Main installation and setup script
 - `.gitconfig` - Git configuration
 - `.config/` - Application-specific configuration directory
+- `.copilot/` - GitHub Copilot skills and custom instructions
 - `.gitignore` - Git ignore patterns
 - `ext_list.txt` - List of extensions
 - `fix_ext.sh` - Extension fixing script
