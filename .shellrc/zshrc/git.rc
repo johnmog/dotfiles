@@ -1,0 +1,78 @@
+function mkdircd {
+    mkdir -p "$1" && cd "$1"
+}
+
+function git-copy-branch-name {
+    branch=$(git rev-parse --abbrev-ref HEAD)
+    echo "$branch"
+    echo "$branch" | tr -d '\n' | tr -d ' ' | pbcopy
+}
+
+function git-clear-branch {
+    if [[ -z "$1" ]]; then
+        echo "ERROR: Branch name required"
+        return 1
+    fi
+    git branch -D "$1"
+    git push origin ":$1"
+}
+
+function git-pull {
+    branch=$(git rev-parse --abbrev-ref HEAD)
+    git pull origin "$branch"
+}
+
+function git-create-branch {
+    if [[ -z "$1" ]]; then
+        echo "ERROR: Branch name required"
+        return 1
+    fi
+    git checkout -b "$1"
+    git push -u origin "$1"
+}
+
+function wt {
+    if [[ -z "$1" ]]; then
+        echo "ERROR: Workspace name required"
+        return 1
+    fi
+    
+    if [[ ! -d .git ]]; then
+        echo "ERROR: Not in a git repository"
+        return 1
+    fi
+    
+    local workspace_name="$1"
+    git worktree add "../$workspace_name" -b "$workspace_name"
+    cd "../$workspace_name"
+}
+
+function wtd {
+    if [[ -z "$1" ]]; then
+        echo "ERROR: Workspace name required"
+        return 1
+    fi
+    
+    local workspace_name="$1"
+    
+    # Get the main worktree path (first entry from git worktree list)
+    local repo_root=$(git worktree list --porcelain 2>/dev/null | head -1 | sed 's/^worktree //')
+    
+    if [[ -z "$repo_root" ]]; then
+        echo "ERROR: Not in a git repository"
+        return 1
+    fi
+    
+    cd "$repo_root"
+    
+    echo -n "Delete worktree '$workspace_name' and its branch? (y/n) "
+    read -r confirmation
+    
+    if [[ "$confirmation" =~ ^[Yy]$ ]]; then
+        git worktree remove "$workspace_name" 2>/dev/null || git worktree remove "../$workspace_name" 2>/dev/null
+        git branch -D "$workspace_name" 2>/dev/null
+        echo "Deleted worktree and branch: $workspace_name"
+    else
+        echo "Cancelled"
+    fi
+}
