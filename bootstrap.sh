@@ -188,7 +188,7 @@ if [[ ! -d "$HOME/.dotfiles/" ]]; then
   dotfiles config --local status.showUntrackedFiles no
 fi
 
-cd $HOME/
+cd "$HOME"/
 
 if [[ -n "$CODESPACES" ]]; then
   log "Running in Codespaces..."
