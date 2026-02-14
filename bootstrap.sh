@@ -177,6 +177,86 @@ install_nvm() {
   fi
 }
 
+# Clone private dotfiles repository
+# This function will attempt to clone the dotfiles-private repo
+# If it fails (no token, bad token, etc.), it will log and continue
+clone_private_dotfiles() {
+  local PRIVATE_REPO_URL="https://github.com/johnmog/dotfiles-private"
+  local PRIVATE_REPO_DIR="$HOME/.dotfiles-private"
+  
+  # Check if repository already exists
+  if [[ -d "$PRIVATE_REPO_DIR" ]]; then
+    log "Private dotfiles repository already exists at $PRIVATE_REPO_DIR"
+    return 0
+  fi
+  
+  # Check if GITHUB_TOKEN is available
+  if [[ -z "$GITHUB_TOKEN" ]]; then
+    log "GITHUB_TOKEN not found - skipping private dotfiles repository"
+    return 0
+  fi
+  
+  log "Attempting to clone private dotfiles repository..."
+  
+  # Try to clone the repository with token authentication
+  # Use https authentication with token
+  # Disable terminal prompts to prevent hanging on auth failures
+  if GIT_TERMINAL_PROMPT=0 git clone "https://${GITHUB_TOKEN}@github.com/johnmog/dotfiles-private.git" "$PRIVATE_REPO_DIR" 2>/dev/null; then
+    log "Private dotfiles repository cloned successfully"
+    return 0
+  else
+    log "Unable to clone private dotfiles repository (this is not an error - continuing)"
+    return 0
+  fi
+}
+export -f clone_private_dotfiles
+
+# Run bootstrap script from private dotfiles
+# This function will run bootstrap-private.sh from the private repo if it exists
+run_private_bootstrap() {
+  local PRIVATE_REPO_DIR="$HOME/.dotfiles-private"
+  local PRIVATE_BOOTSTRAP="$PRIVATE_REPO_DIR/bootstrap-private.sh"
+  
+  # Check if the private repo directory exists
+  if [[ ! -d "$PRIVATE_REPO_DIR" ]]; then
+    log "Private dotfiles repository not found - skipping private bootstrap"
+    return 0
+  fi
+  
+  # Check if bootstrap-private.sh exists and is executable
+  if [[ ! -f "$PRIVATE_BOOTSTRAP" ]]; then
+    log "bootstrap-private.sh not found in private repository - skipping"
+    return 0
+  fi
+  
+  # Security: Verify the script is in the expected directory
+  if [[ "$PRIVATE_BOOTSTRAP" != "$HOME/.dotfiles-private"* ]]; then
+    log "ERROR: Private bootstrap script path is suspicious - skipping for security"
+    return 0
+  fi
+  
+  log "Running private bootstrap script..."
+  
+  # Make the script executable if it isn't already
+  if [[ ! -x "$PRIVATE_BOOTSTRAP" ]]; then
+    chmod +x "$PRIVATE_BOOTSTRAP" 2>/dev/null || {
+      log "Unable to make bootstrap-private.sh executable - skipping"
+      return 0
+    }
+  fi
+  
+  # Run the private bootstrap script
+  # Don't exit on error - we want to continue even if private bootstrap fails
+  if bash "$PRIVATE_BOOTSTRAP"; then
+    log "Private bootstrap completed successfully"
+  else
+    log "Private bootstrap encountered errors (this is not critical - continuing)"
+  fi
+  
+  return 0
+}
+export -f run_private_bootstrap
+
 # Ensure the repository exists
 if [[ ! -d "$HOME/.dotfiles/" ]]; then
   log "Cloning dotfiles repository..."
@@ -376,6 +456,11 @@ else
   # Use homebrew for non-codespace environments
   brew install wget
 fi
+
+# Clone and run private dotfiles if available
+log "Checking for private dotfiles repository..."
+clone_private_dotfiles
+run_private_bootstrap
 
 log "=== Setup instructions ==="
 log "1. Set solarized dark theme in iTerm with CMD+i"
