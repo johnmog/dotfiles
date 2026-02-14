@@ -213,6 +213,8 @@ export -f clone_private_dotfiles
 
 # Run bootstrap script from private dotfiles
 # This function will run bootstrap-private.sh from the private repo if it exists
+# NOTE: The script runs with the same privileges as bootstrap.sh. Users should
+# review the contents of their bootstrap-private.sh to ensure it's safe to execute.
 run_private_bootstrap() {
   local PRIVATE_REPO_DIR="$HOME/.dotfiles-private"
   local PRIVATE_BOOTSTRAP="$PRIVATE_REPO_DIR/bootstrap-private.sh"
@@ -230,7 +232,9 @@ run_private_bootstrap() {
   fi
   
   # Security: Verify the script is in the expected directory
-  if [[ "$PRIVATE_BOOTSTRAP" != "$HOME/.dotfiles-private"* ]]; then
+  # Use realpath to resolve any symbolic links and validate the path
+  PRIVATE_BOOTSTRAP_REAL=$(realpath "$PRIVATE_BOOTSTRAP" 2>/dev/null || echo "$PRIVATE_BOOTSTRAP")
+  if [[ "$PRIVATE_BOOTSTRAP_REAL" != "$HOME/.dotfiles-private"* ]]; then
     log "ERROR: Private bootstrap script path is suspicious - skipping for security"
     return 0
   fi
