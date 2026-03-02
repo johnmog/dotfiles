@@ -178,30 +178,27 @@ install_nvm() {
 }
 
 # Clone private dotfiles repository
-# This function will attempt to clone the dotfiles-private repo
-# If it fails (no token, bad token, etc.), it will log and continue
+# This function will attempt to clone the dotfiles-private repo using gh CLI
+# If it fails (no auth, not found, etc.), it will log and continue
 clone_private_dotfiles() {
-  local PRIVATE_REPO_URL="https://github.com/johnmog/dotfiles-private"
-  local PRIVATE_REPO_DIR="$HOME/.dotfiles-private"
+  local PRIVATE_REPO_DIR="$REPOS/dotfiles-private"
   
   # Check if repository already exists
-  if [[ -d "$PRIVATE_REPO_DIR" ]]; then
+  if [[ -d "$PRIVATE_REPO_DIR/.git" ]]; then
     log "Private dotfiles repository already exists at $PRIVATE_REPO_DIR"
     return 0
   fi
   
-  # Check if GITHUB_TOKEN is available
-  if [[ -z "$GITHUB_TOKEN" ]]; then
-    log "GITHUB_TOKEN not found - skipping private dotfiles repository"
+  # Check if gh CLI is available
+  if ! command -v gh &>/dev/null; then
+    log "gh CLI not found - skipping private dotfiles repository"
     return 0
   fi
   
   log "Attempting to clone private dotfiles repository..."
   
-  # Try to clone the repository with token authentication
-  # Use https authentication with token
-  # Disable terminal prompts to prevent hanging on auth failures
-  if GIT_TERMINAL_PROMPT=0 git clone "https://${GITHUB_TOKEN}@github.com/johnmog/dotfiles-private.git" "$PRIVATE_REPO_DIR" 2>/dev/null; then
+  # Use gh repo clone which handles auth automatically (works in Codespaces and locally)
+  if gh repo clone johnmog/dotfiles-private "$PRIVATE_REPO_DIR" 2>/dev/null; then
     log "Private dotfiles repository cloned successfully"
     return 0
   else
@@ -209,14 +206,10 @@ clone_private_dotfiles() {
     return 0
   fi
 }
-export -f clone_private_dotfiles
 
 # Run bootstrap script from private dotfiles
-# This function will run bootstrap-private.sh from the private repo if it exists
-# NOTE: The script runs with the same privileges as bootstrap.sh. Users should
-# review the contents of their bootstrap-private.sh to ensure it's safe to execute.
 run_private_bootstrap() {
-  local PRIVATE_REPO_DIR="$HOME/.dotfiles-private"
+  local PRIVATE_REPO_DIR="$REPOS/dotfiles-private"
   local PRIVATE_BOOTSTRAP="$PRIVATE_REPO_DIR/bootstrap-private.sh"
   
   # Check if the private repo directory exists
@@ -232,16 +225,14 @@ run_private_bootstrap() {
   fi
   
   # Security: Verify the script is in the expected directory
-  # Use realpath to resolve any symbolic links and validate the path
   PRIVATE_BOOTSTRAP_REAL=$(realpath "$PRIVATE_BOOTSTRAP" 2>/dev/null || echo "$PRIVATE_BOOTSTRAP")
-  if [[ "$PRIVATE_BOOTSTRAP_REAL" != "$HOME/.dotfiles-private"* ]]; then
+  if [[ "$PRIVATE_BOOTSTRAP_REAL" != "$REPOS/dotfiles-private"* ]]; then
     log "ERROR: Private bootstrap script path is suspicious - skipping for security"
     return 0
   fi
   
   log "Running private bootstrap script..."
   
-  # Make the script executable if it isn't already
   if [[ ! -x "$PRIVATE_BOOTSTRAP" ]]; then
     chmod +x "$PRIVATE_BOOTSTRAP" 2>/dev/null || {
       log "Unable to make bootstrap-private.sh executable - skipping"
@@ -249,8 +240,6 @@ run_private_bootstrap() {
     }
   fi
   
-  # Run the private bootstrap script
-  # Don't exit on error - we want to continue even if private bootstrap fails
   if bash "$PRIVATE_BOOTSTRAP"; then
     log "Private bootstrap completed successfully"
   else
@@ -259,7 +248,7 @@ run_private_bootstrap() {
   
   return 0
 }
-export -f run_private_bootstrap
+
 
 # Ensure the repository exists
 if [[ ! -d "$HOME/.dotfiles/" ]]; then
