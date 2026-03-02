@@ -358,7 +358,11 @@ wait_parallel
 # Install command line tools
 log "Installing CLI tools..."
 if [[ -n "$CODESPACES" ]]; then
-  # Use direct installations in codespaces for speed
+  # Ensure python3 is available (needed by autojump)
+  if ! command -v python3 &>/dev/null; then
+    log "Installing python3 (required by autojump)..."
+    sudo apt-get update -qq && sudo apt-get install -y -qq python3 >/dev/null 2>&1
+  fi
   # Run all tool installations in parallel for faster setup
   log "Running CLI tool installations in parallel..."
   run_parallel install_fzf_codespace
