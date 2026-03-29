@@ -302,7 +302,6 @@ fi
 if [[ "$OSTYPE" =~ darwin ]]; then
   log "Installing macOS specific applications..."
   brew install --cask iterm2 || log "Failed to install iTerm2"
-  brew install --cask powershell || log "Failed to install PowerShell"
 fi
 
 # Configure shell
