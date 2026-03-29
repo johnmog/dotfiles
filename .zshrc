@@ -42,6 +42,10 @@ ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=60'
 
 eval "$(starship init zsh)"
 source <(fzf --zsh)
+export FZF_DEFAULT_OPTS='--height 40%'
+export FZF_CTRL_T_COMMAND='fd --type f --hidden --follow --exclude .git'
+export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git'
+export FZF_ALT_C_COMMAND="$FZF_DEFAULT_COMMAND"
 
 if [ -f "$HOME/.secrets" ]; then
   source "$HOME/.secrets"
